@@ -5,7 +5,7 @@ entity eq1 is
     port
     (
         i0, i1: in std_logic;
-        eq: out std_logic;
+        eq: out std_logic
     );
 end eq1;
 
