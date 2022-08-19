@@ -14,7 +14,7 @@ begin
     port map( a => test_in0, b => test_in1, aeqb => test_out );
     
   -- test vector generator
-  proces
+  process
   begin
     -- test vector 1
     test_in0 <= "00";
