@@ -27,4 +27,29 @@ begin
     wait for 200ns;
     
     -- test vector 3
+    test_in0 <= "01";
+    test_in1 <= "11";
+    wait for 200ns;
     
+    -- test vector 4
+    test_in0 <= "10";
+    test_in1 <= "10";
+    wait for 200ns;
+    
+    -- test vector 5
+    test_in0 <= "10";
+    test_in1 <= "00";
+    wait for 200ns;
+
+    -- test vector 6
+    test_in0 <= "11";
+    test_in1 <= "11";
+    wait for 200ns;
+    
+    -- test vector 7
+    test_in0 <= "11";
+    test_in1 <= "01";
+    wait for 200ns;
+  
+  end process;
+end tb_arch;
