@@ -16,7 +16,7 @@ D-FF에 대해 설명하기 전에 D-FF를 구성하는 **RS-FF** 에 대하여 
 
 <br/>
 
-![1280px-RS_Flip-flop_(NOR) svg (1)](https://user-images.githubusercontent.com/111409004/186794218-61bb5dae-19d1-4ce2-8b9d-75263580819b.png)
+![1280px-RS_Flip-flop_(NOR) svg (1)](https://user-images.githubusercontent.com/111409004/187100686-7f44df6a-899a-41f6-91e7-c0be476bf6ca.png)
 
 *RS-FF의 도식*
 
