@@ -1,7 +1,10 @@
 # 소개
 챕터 3에서는 트라이 스테이트 버퍼에 이어 VHDL의 주요 문법들에 대해 다룬다. 문서가 너무 길어지기 때문에 분리하여 서술한다.
 
-# 조건 신호 할당문(Conditional signal assignment statement)
+# 병행 할당문(Cocurrent assignment statement)을 통한 회로의 배선
+다음의 조건 신호 할당문과 선택 신호 할당문은 **병행 할당문** 에 해당된다. 이들은 바로 밑에서 다루겠지만 여타 프로그래밍 언어의 *if* 와 *case* 문과 비슷해보이나, 순차적으로 실행되는 프로그래밍 언어와는 달리 병행처리되어 합성 과정에서 멀티플렉서 등으로 네트워크를 이룬다. (의역, 원문: these statements are mapped to a routing network during synthesis.)
+
+## 조건 신호 할당문(Conditional signal assignment statement)
 조건 신호 할당문은 이미 std_logic의 Z값을 합성하기 위한 예시로 다룬 바 있다. 간단한 조건 신호 할당문의 템플릿은 다음과 같다.
 
 ``` vhdl
@@ -11,7 +14,7 @@
                  value_n;
 ```
 
-여타 프로그래밍 언어와 마찬가지로, boolean 식이 참이 될 때까지 순차적으로 평가되며, 해당하는 값이 신호에 할당된다. 마지막의 **value_n** 은 모든 boolean 식이 false로 평가되면 신호에 할당된다. 조건은 boolean 식이기만 하면 되기에, 관계 연산자 또한 사용할 수 있다. (예를 들어 when m > n ... 과 같이 쓰면 이 또한 boolean 식으로써 평가될 수 있다.)
+여타 프로그래밍 언어와 마찬가지로, boolean 식이 참이 될 때까지 연달아(successively) 평가되며, 해당하는 값이 신호에 할당된다. 마지막의 **value_n** 은 모든 boolean 식이 false로 평가되면 신호에 할당된다. 조건은 boolean 식이기만 하면 되기에, 관계 연산자 또한 사용할 수 있다. (예를 들어 when m > n ... 과 같이 쓰면 이 또한 boolean 식으로써 평가될 수 있다.)
 
 조건 신호 할당문을 구체적으로 생각해보자면, 위 예시에서 *signal_name* 과 *value* 신호를 연결하는 **루팅(routing)** 은 **멀티플렉서의 배열(sequence of multiplexers)** 을 통해 이루어진다. 
 
@@ -23,7 +26,7 @@
 
 주의할 점은 모든 boolean 식과 value 식은 병행으로 평가된다. boolean 식의 값에 따라 멀티플렉서의 opt 값을 설정하고 원하는 value 값을 output에 배선하며, when-else 구문이 많아질수록 더 긴 전파시간을 낳게된다.
 
-# 선택 신호 할당문(Selected signal assignment statement)
+## 선택 신호 할당문(Selected signal assignment statement)
 간단한 선택 신호 할당문의 템플릿은 다음과 같다.
 
 ``` vhdl
@@ -35,7 +38,7 @@
            value_n when others;
 ```
 
-선택 신호 할당문은 여타 프로그래밍 언어의 *case* 와 어느정도 비슷하다. 이것은 어떤 식을 **sel** 신호의 값에 따라 신호에 할당한다. *choice(i.e. choice_n)* 는 반드시 유효한 값이거나 sel 의 유효한 값들의 집합(a set of valid value of sel)이어야 하며, choice 들은 반드시 상호 배타적(mutually exclusive)이어야 한다. 바꿔 말하자면, 가능한 모든 sel 의 값들은 반드시 단 하나의 choice만으로 다루어져야 한다. 마지막의 **others** 는 sel 이 choice와 일치하지 않을 때 마지막으로 할당된다. 
+선택 신호 할당문은 여타 프로그래밍 언어의 *case* 와 어느정도 비슷하다. 이것은 어떤 식을 **sel** 신호의 값에 따라 신호에 할당한다. *choice(i.e. choice_n)* 는 반드시 유효한 값이거나 sel 의 유효한 값들의 집합(a set of valid value of sel)이어야 하며, choice 들은 반드시 상호 배타적(mutually exclusive)이어야 한다. 바꿔 말하자면, 모든 sel 의 값들은 반드시 단 하나의 choice 만으로 다루어져야 한다. 마지막의 **others** 는 sel 이 choice와 일치하지 않을 때 마지막으로 할당된다. 
 
 sel 신호는 일반적으로 std_logic_vector 타입을 갖기 때문에, others 구문은 합성 불가능한 값들('X'나 'U' 등)을 다루기 위해 항상 필요하다.
 
@@ -101,3 +104,52 @@ process 문으로 둘러싸여 있다는 점만 제외하면 일반적인 병행
 
 위와 같이 process 문에 신호를 여러번 할당하는 의미는 미묘하고 가끔 오류를 일으키기 쉬울 수 있다. 이 책에서는 의도되지 않은 메모리를 방지하기 위한 목적으로만 순차문에서 신호를 여러번 할당하기로 한다. 
 
+# IF 문과 CASE 문을 통한 회로의 배선
+이들은 바로 밑에서 다루겠지만 병행 할당문과는 달리 **순차적으로 평가** 된다. 앞서 말한대로 배선 구조를 설명하기 위해 사용될 수 있다.
+
+## if 문(if statement)
+간단한 if 문의 템플릿은 다음과 같다.
+
+```vhdl
+  if boolean_1 then
+    sequential_statements;
+  
+  elseif boolean_2 then
+    sequential_statements;
+  
+  elseif boolean_3 then
+    sequential_statements;
+    
+  ...
+  
+  else
+    sequential_statements;
+  end if;
+```
+
+if 문은 하나의 *if* 분기점을 갖고, 하나 혹은 여러개의 임의의 *elseif* 분기점을 가지며, 하나의 임의의 *else* 분기점을 갖는다. boolean 식은 *true* 혹은 *else* 분기점에 도달할 때까지 순차적으로 평가되며, 그에 상응하는 분기점이 실행된다.
+
+if 문은 조건 신호 할당문과 어느정도 유사해 보인다. 이들은 if 문이 단 하나의 순차적인 신호 할당문을 포함했을 때 서로 같은 역할을 한다. 예를 들어,
+
+``` vhdl
+  r <= a + b + c when m = n else
+       a - b     when m > 0 else
+       c + 1;
+```
+
+위의 조건 신호 할당문은 다음과 같이 쓸 수도 있다.
+
+``` vhdl
+  process (a, b, c, m, n)
+  begin
+    if m = n then
+      r <= a + b + c;
+    
+    elseif m > 0 then
+      r <= a - b;
+    
+    else
+      r <= c + 1;
+    end if;
+  end process;
+```
