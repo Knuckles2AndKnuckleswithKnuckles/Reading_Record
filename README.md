@@ -1,3 +1,5 @@
+# VHDL 혹은 하드웨어 설계에 관해 지식이 풍부하신 분들은 피드백을 남겨주시면 감사하겠습니다.
+
 # VHDL이란
 VHDL은 **"VHSIC HDL(Very High Speed Integrated Circuit Hardware Description Language)"**
 의 약자이다. 이 언어는 본래 미 국방부에서 개발된 것으로, 이후 IEEE(Institute of Electrical and Electronics Engineers)
