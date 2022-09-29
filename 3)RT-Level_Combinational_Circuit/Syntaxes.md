@@ -24,7 +24,7 @@
 
 2 to 1 멀티플렉서는 **i0** , **i1** , **opt** 의 세 가지 입력과 **output** 의 한 가지 출력을 가진다. opt가 논리적 0일 때 output은 i0에 루팅되고, opt가 1일 때 output은 i1에 루팅된다.
 
-주의할 점은 모든 boolean 식과 value 식은 병행으로 평가된다. boolean 식의 값에 따라 멀티플렉서의 opt 값을 설정하고 원하는 value 값을 output에 배선하며, when-else 구문이 많아질수록 더 긴 전파시간을 낳게된다.
+주의할 점은 모든 boolean 식과 value 식은 병행으로 평가된다. boolean 식의 값에 따라 멀티플렉서의 opt 값을 설정하고 원하는 value 값을 output에 배선하며, when-else 구문이 많아질수록 더 긴 전파지연을 낳게된다.
 
 ## 선택 신호 할당문(Selected signal assignment statement)
 간단한 선택 신호 할당문의 템플릿은 다음과 같다.
@@ -47,7 +47,7 @@ sel 신호는 일반적으로 std_logic_vector 타입을 갖기 때문에, other
 
 순차문은 다양한 구조들을 포함하고 있으나, 이 중의 대다수는 명확한 하드웨어 대응책(hardware counterpart)들을 가지고 있지 않다. 스파게티 코드된 process 문은 빈번하게 불필요하고 복잡한 시행을 야기하거나 합성되지 않을 수 있다. 합성을 위해, 이 책에서는 process 문을 두가지 목적을 위해 사용을 제한한다.
 
-+ *if* 와 *case* 문의 배선 구조의 서술
++ *if* 와 *case* 문의 배선 구조의 서술 (책에서는 합성과정에서 배열 구조의 우선순위를 언급하나, 내용이 얕고 인터넷에도 구체적인 내용을 찾지 못해 여기선 다루지 않는다.)
 + 메모리 요소를 위한 구조 템플릿 (챕터 4에서 다룰 예정이다.)
 
 간단한 process 문의 템플릿은 다음과 같다.
@@ -105,7 +105,7 @@ process 문으로 둘러싸여 있다는 점만 제외하면 일반적인 병행
 위와 같이 process 문에 신호를 여러번 할당하는 의미는 미묘하고 가끔 오류를 일으키기 쉬울 수 있다. 이 책에서는 의도되지 않은 메모리를 방지하기 위한 목적으로만 순차문에서 신호를 여러번 할당하기로 한다. 
 
 # IF 문과 CASE 문을 통한 회로의 배선
-이들은 바로 밑에서 다루겠지만 병행 할당문과는 달리 **순차적으로 평가** 된다. 앞서 말한대로 배선 구조를 설명하기 위해 사용될 수 있다.
+이들은 바로 밑에서 다루겠지만 병행 할당문과는 달리 **순차적으로 평가** 된다.
 
 ## if 문(if statement)
 간단한 if 문의 템플릿은 다음과 같다.
@@ -153,3 +153,128 @@ if 문은 조건 신호 할당문과 어느정도 유사해 보인다. 이들은
     end if;
   end process;
 ```
+
+## case 문(case statement)
+간단한 case 문의 템플릿은 다음과 같다.
+
+``` vhdl
+  case sel is
+    when choice_1 =>
+      sequential statements;
+  
+    when choice_2 =>
+      sequential statements;
+    ...  
+  
+    when others =>
+      sequential statements;
+  end case;
+```
+
+case 문은 **sel** 신호를 사용하여 순차문의 집합을 선택한다. 선택 신호 할당문과 같이, *choice(i.e. choice_n)* 는 반드시 유효한 값이거나 sel 의 유효한 값들의 집합이어야 하며, choice 들은 반드시 상호 배타적이어야 한다. 마지막의 **others** 는 사용되지 않은 값을 보완하기 위해 사용된다.
+
+case 문과 선택 신호 할당문은 어느정도 비슷하다. 이들은 case 문이 단 하나의 순차 신호 할당문을 포함하고 있을 때 서로 같은 역할을 한다. 예를 들어,
+
+``` vhdl
+  with sel select
+    r <= a + b + c when "00",
+         a - b     when "10",
+         c + 1     when others;
+```
+
+위의 선택 신호 할당문은 다음과 같이 쓸 수 있다.
+
+``` vhdl
+  process (a, b, c, sel)
+  begin
+    case sel is
+      when "00" =>
+        r <= a + b + c;
+      
+      when "10" =>
+        r <= a - b;
+      
+      when others =>
+        r <= c + 1;
+    end case;
+  end process;
+```
+
+## 병행문과의 비교(Comparison to concurrent statements)
+앞서 다루었던 순차문이 하나인 if 와 case 문은 각각 조건 신호 할당문과 선택 신호 할당문과 같은 역할을 한다. 그러나 if 와 case 문은 모든 숫자와 모든 타입의 순차문을 모든 분기점에서 허용하므로, 병행 할당문과 비교해서 더 유연하고 다재다능하다.
+
+이는 다음 예시를 통해 예증할 수 있다. 먼저, 두 가지의 입력 신호를 정렬하고 큰 값과 작은 값을 각각 **large** 와 **small** 출력에 배선하는 회로를 생각해본다. 이는 조건 신호 할당문을 두 개 사용하여 다음과 같이 나타낼 수 있다.
+
+``` vhdl
+  large <= a when a > b else
+           b;
+  small <= b when a > b else
+           a;
+```
+
+이와 같은 기능을 하는 코드를 if 문으로 작성할 수도 있다.
+
+``` vhdl
+  process (a, b)
+  begin
+    if a > b then
+      large <= a;
+      small <= b;
+    
+    else
+      large <= b;
+      small <= a;
+    end if;
+  end process;
+```
+
+조건 신호 할당문은 비교 연산자를 2번 사용한 것에 반해, if 문은 비교 연산자를 1번 사용하여, 합성에서 비교기의 사용에서 차이가 나타난다.
+
+두 번째로, 세 입력 신호 중 가장 큰 값을 출력에 배선하는 회로를 생각해본다. 이는 2개의 중첩된 if 문을 사용하여 명확하게 기술할 수 있다.
+
+``` vhdl
+  process (a, b, c)
+  begin
+    if (a > b) then
+      if (a > c) then
+        max <= a;
+      else
+        max <= c;
+      end if;
+    
+    else
+      if (b > c) then
+        max <= b;
+      else
+        max <= c;
+      end if;
+    end if;
+  end process;
+```
+
+이를 조건 신호 할당문으로 쓰면 다음과 같다.
+
+``` vhdl
+  max <= a when ((a > b) and (a > c)) else
+         c when (a > b) else
+         b when (b > c) else
+         c;
+```
+
+if와 같이 중첩하여 쓸 수 없기 때문에, 조건 신호 할당문은 덜 직관적으로 보인다. 만약 병행 할당문이 반드시 사용되어야 한다면, 다음과 같이 3개의 조건 신호 할당문을 사용하여 회로를 기술할 수도 있다.
+
+``` vhdl
+  signal ac_max, bc_max : std_logic;
+  ...
+  
+  ac_max <= a when (a > c) else
+            c;
+  bc_max <= b when (b > c) else
+            c;
+  
+  max <= ac_max when (a > b) else
+         bc_max;
+```
+
+
+
