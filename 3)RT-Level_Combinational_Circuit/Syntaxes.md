@@ -340,8 +340,71 @@ if 문과 같이 중첩하여 쓸 수 없기 때문에, 조건 신호 할당문�
 
 gt 와 eq 신호를 처음부터 '0'으로 추정하여 if 문 내에서 할당되지 않았을 경우를 대비한다.(때문에 else 문을 사용하여 신호를 다시 할당하는 번거로움이 줄어들었다.) process 문 내에서 신호를 여러번 할당하는 행동은 "모든 분기점에서 모든 신호를 할당한다"는 규칙을 만족시켜야 할 때에만 차선책으로 고려한다.
 
-# 정수(定数)와 제네릭
-HDL 코드는 식과 배열에서 빈번하게 정수를 사용한다.
+# 정수(定数)와 제네릭(Generics)
+
+## 정수(定数, Constant)
+HDL 코드는 식과 배열에서 정수를 빈번하게 사용한다. 좋은 설계습관 중의 하나는 바로 어렵고 이해하기 힘든 리터럴을 상징적인 정수로 바꾸는 것이다.(리터럴이란 "문자 그대로" 라는 뜻으로, 일반적인 프로그래밍 언어에서는 '1', 'A', "This is literal" 과 같이 숫자, 문자, 문자열 등을 포함한다.) 이는 코드를 명확하게 하고, 후에 유지보수 및 수정을 용이하게 해준다. 정수의 정의는 architecture 의 정의 구획에서 포함될 수 있으며, 간단한 템플릿은 다음과 같다.
+
+``` vhdl
+  constant const_name : data_type := value_expression;
+```
+
+예시로, 정수를 2개 선언하는 코드는 다음과 같다.
+
+``` vhdl
+  constant DATA_BIT : integer := 8;
+  constant DATA_RANGE : integer := (2**DATA_BIT) - 1;
+```
+
+정수 식은 전처리(preprocessing) 과정 중에 평가되고, 따라서 물리적인 회로를 필요로 하지 않는다. 이후로 이 책에서는 정수를 대문자로 사용한다.
+
+다음 예시는 **Carry-Out** 을 포함한 4bit 가산기를 설계한 것으로, 이는 입력을 1bit 확장하고 일반적인 덧셈을 수행하는 것으로 구현할 수 있다. 덧셈의 결과의 MSB를 Carry-Out 으로 한다.
+
+``` vhdl
+-- Adder using a hard literal
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity add_w_carry is
+  port(
+    a, b : in std_logic_vector(3 downto 0);
+    co : out std_logic;
+    sum : out std_logic_vector(3 downto 0)
+  );
+end add_w_carry;
+
+architecture hard_arch of add_w_carry is
+  signal a_ext, b_ext, sum_ext : unsigned(4 downto 0);
+
+begin
+  a_ext <= unsigned('0' & a);
+  b_ext <= unsigned('0' & b);
+  sum_ext <= a_ext + b_ext;
+  sum <= std_logic_vector(sum_ext(3 downto 0));
+  co <= sum_ext(4);
+end hard_arch;
+```
+
+위의 코드는 std_logic_vector 배열을 리터럴로 할당, 참조하게끔 쓴 것으로, 이후 이 코드를 8bit 가산기로 수정하는 작업을 하게 되면 리터럴을 전부 수정해야 하는 번거로움이 생기게 된다. 이는 코드가 복잡해질수록 더 많은 리터럴을 사용해야 하므로, 읽기 힘들어지는 것은 물론 오류를 불러일으키기도 쉬워지게 된다. 이렇게 리터럴을 사용하여 생기는 유지보수 및 코드의 가독성 문제는 정수를 사용하여 해결할 수 있다. 리터럴을 사용한 부분을 정수로 바꾼 코드는 다음과 같다.
+
+``` vhdl
+architecture const_arch of add_w_carry is
+  const N : integer := 4;
+  signal a_ext, b_ext, sum_ext : unsigned(N downto 0);
+
+begin
+  a_ext <= unsigned('0' & a);
+  b_ext <= unsigned('0' & b);
+  sum_ext <= a_ext + b_ext;
+  sum <= std_logic_vector(sum_ext(N-1 downto 0));
+  co <= sum_ext(N);
+end const_arch;
+```
+
+
+
 
 
 
