@@ -338,12 +338,12 @@ if 문과 같이 중첩하여 쓸 수 없기 때문에, 조건 신호 할당문�
   end process;
 ```
 
-gt 와 eq 신호를 처음부터 '0'으로 추정하여 if 문 내에서 할당되지 않았을 경우를 대비한다.(때문에 else 문을 사용하여 신호를 다시 할당하는 번거로움이 줄어들었다.) process 문 내에서 신호를 여러번 할당하는 행동은 "모든 분기점에서 모든 신호를 할당한다"는 규칙을 만족시켜야 할 때에만 차선책으로 고려한다.
+gt 와 eq 신호를 처음부터 '0'으로 추정하여 if 문 내에서 할당되지 않았을 경우를 대비한다.(때문에 else 문을 사용하여 신호를 다시 할당하는 번거로움이 줄어들었다.) process 문 내에서 신호를 여러번 할당하는 행동은 "모든 분기점에서 모든 신호를 할당한다"는 규칙을 만족시켜야 할 때에만 차선책으로 고려하는 습관을 들이자.
 
-# 정수(定数)와 제네릭(Generics)
+# 정수(定数)와 Generics
 
 ## 정수(定数, Constant)
-HDL 코드는 식과 배열에서 정수를 빈번하게 사용한다. 좋은 설계습관 중의 하나는 바로 어렵고 이해하기 힘든 리터럴을 상징적인 정수로 바꾸는 것이다.(리터럴이란 "문자 그대로" 라는 뜻으로, 일반적인 프로그래밍 언어에서는 '1', 'A', "This is literal" 과 같이 숫자, 문자, 문자열 등을 포함한다.) 이는 코드를 명확하게 하고, 후에 유지보수 및 수정을 용이하게 해준다. 정수의 정의는 architecture 의 정의 구획에서 포함될 수 있으며, 간단한 템플릿은 다음과 같다.
+HDL 코드는 식과 배열에서 정수를 빈번하게 사용한다. 좋은 설계습관 중의 하나는 바로 어렵고 이해하기 힘든 리터럴을 상징적인 정수로 바꾸는 것이다.(리터럴이란 "문자 그대로" 라는 뜻으로, 일반적인 프로그래밍 언어에서는 '1', 'A', "This is literal" 과 같이 숫자, 문자, 문자열 등을 포함한다.) 이는 코드를 명확하게 하고, 후에 유지보수 및 수정을 용이하게 해준다. 정수의 정의는 architecture 의 선언부에 포함되며, 간단한 템플릿은 다음과 같다.
 
 ``` vhdl
   constant const_name : data_type := value_expression;
@@ -403,8 +403,52 @@ begin
 end const_arch;
 ```
 
+## Generics
+VHDL에는 generic 이라 불리는 구조를 제공하며, 이는 정보를 entity 와 부품에 전달하는 역할을 한다. generic 은 architecture 내부에서 수정되지 않기 때문에, 이는 어느정도 정수와 비슷하다. generic 은 entity 내부에서 선언되며, port  이전에 정의된다.
 
+``` vhdl
+entity entity_name is
+  generic(
+    generic_name : data_type := default_values;
+    generic_name : data_type := default_values;
+    ...
+    generic_name : data_type := default_values
+  );
+  
+  port(
+    ...
+  );
+end entity_name;
+```
 
+이전의 4bit 가산기도 generic 을 사용하여 다음과 같이 수정할 수 있다.
 
+``` vhdl
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
+entity gen_add_w_carry is
+  generic (N : integer := 4);
+  
+  port(
+    a, b : in std_logic_vector(N-1 downto 0);
+    co : out std_logic;
+    sum : out std_logic_vector(N-1 downto 0)
+  );
+end gen_add_w_carry;
+
+architecture arch of gen_add_w_carry is
+  signal a_ext, b_ext, sum_ext : unsigned(N downto 0);
+
+begin
+  a_ext <= unsigned('0' & a);
+  b_ext <= unsigned('0' & b);
+  sum_ext <= a_ext + b_ext;
+  sum <= std_logic_vector(sum_ext(N-1 downto 0));
+  co <= sum_ext(N);
+end arch;
+```
+
+generic N이 선언된 후에는, port 선언부와 architecture 에서 정수처럼 사용될 수 있다. 
 
