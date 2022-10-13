@@ -531,7 +531,13 @@ generic 은 *확장 가능한 코드(scalable code)* 를 만들 수 있는 구�
   sseg(7) <= dp;
 ```
 
+7-segment 에서 숫자만 표현한다면(= 10진수만 표현한다면) 카르노 맵을 통해 간략화된 논리식을 이용하는 방법도 있다. 그러나 16진수를 표현할 때에 이용한다면 숫자가 10 이상일 때(= 1010 이상일 때) 카르노 맵의 "don't care" 조건 때문에 알파벳이 제대로 표시되지 않는 오류가 일어난다.
 
+![F8FK0202097104052](https://user-images.githubusercontent.com/111409004/195512769-8b76fa1d-6fe4-4022-ae8f-795a7c4749e7.png)
+
+*crz technology 社의 Spartan-6 FPGA*
+
+FPGA 보드에는 보통 4개의 7-segment LED 가 탑재되어 있으며, 이 4개의 7-segment 를 제어하면서도 FPGA 칩의 I/O 포트 수를 줄이기 위해서 **시분할다중화(時分割多重化, time-division multiplexing)** 가 사용된다.
 
 
 
