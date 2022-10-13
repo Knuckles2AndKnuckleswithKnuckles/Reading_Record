@@ -69,7 +69,7 @@ sel 신호는 일반적으로 std_logic_vector 타입을 갖기 때문에, other
 ```vhdl
   process (sensitivity_list)
   begin
-  signal <= value_expresion;
+    signal <= value_expresion;
   end process;
 ```
 
@@ -500,12 +500,36 @@ generic 은 *확장 가능한 코드(scalable code)* 를 만들 수 있는 구�
 
 ## 16진수와 7-segment LED decoder
 
+![225px-7_segment_display_labeled svg](https://user-images.githubusercontent.com/111409004/194970388-2827213f-b12e-4226-aaa1-a8e39434fcd1.png)
 
+*7-segment 디스플레이의 배치*
 
+7-segment 디스플레이는 7개의 LED 와 1개의 소수점 LED 로 구성되어 있다. 7-segment LED 는 **active low** (신호가 low 일 때 동작하는 회로)로 설정되어 있으며, 이는 즉 LED 부분에 해당하는 제어 신호가 '0' 일 때 빛난다는 뜻이다. 
 
+7-segment LED decoder 의 16진수 표현은 4bit 입력을 16진수로 취급하고 적절한 LED 패턴을 생성한다. 그에 더해 소수점을 위한 1bit 입력인 **dp** 를 취한다. dp 는 소수점 LED에 직접적으로 연결된다. LED 제어 신호인 dp, a, b, c, d, e, f, g 는 8bit 신호인 **sseg** 로 묶는다. 이를 구현한 코드는 다음과 같다. sseg 의 하위 7bit 는 LED 패턴을 생성하고 MSB 는 dp 와 연결한다.
 
+[Hex_to_7seg_LED_decoder.vhdl](<https://github.com/Knuckles2AndKnuckleswithKnuckles/Reading_Record/blob/main/3)RT-Level_Combinational_Circuit/Hex_to_7seg_LED_decoder.vhdl>)
 
-
+``` vhdl
+  with hex select
+    sseg(6 downto 0) <= "0000001" when "0000", -- 0
+                     <= "1001111" when "0001", -- 1
+                     <= "0010010" when "0010", -- 2
+                     <= "0000110" when "0011", -- 3
+                     <= "1001100" when "0100", -- 4
+                     <= "0100100" when "0101", -- 5
+                     <= "0100000" when "0110", -- 6
+                     <= "0001111" when "0111", -- 7
+                     <= "0000000" when "1000", -- 8
+                     <= "0000100" when "1001", -- 9
+                     <= "0001000" when "1010", -- A
+                     <= "1100000" when "1011", -- b
+                     <= "1110010" when "1100", -- c
+                     <= "1000010" when "1101", -- d
+                     <= "0110000" when "1110", -- E
+                     <= "0111000" when others; -- F
+  sseg(7) <= dp;
+```
 
 
 
