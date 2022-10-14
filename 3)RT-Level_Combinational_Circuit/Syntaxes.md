@@ -537,11 +537,52 @@ generic 은 *확장 가능한 코드(scalable code)* 를 만들 수 있는 구�
 
 *crz technology 社의 Spartan-6 FPGA*
 
-FPGA 보드에는 보통 4개의 7-segment LED 가 탑재되어 있으며, 이 4개의 7-segment 를 제어하면서도 FPGA 칩의 I/O 포트 수를 줄이기 위해서 **시분할다중화(時分割多重化, time-division multiplexing)** 가 사용된다.
+FPGA 보드에는 보통 4개의 7-segment LED 가 탑재되어 있으며, 이 4개의 7-segment 를 제어하면서도 FPGA 칩의 I/O 포트 수를 줄이기 위해서 **시분할다중화(時分割多重化, time-division multiplexing)** 가 사용된다. 다음은 복호기(復号器, decoder)의 운영을 확인하기 위해 8bit increment 회로를 사용한 코드이다. 여기서 increment 란 단순히 입력에 +1 을 한 결과를 출력으로 내보내는 것이다. (반대로 decrement 는 -1 을 수행한다.)
 
+[LED_TDM_and_Decoder_test.vhd](<https://github.com/Knuckles2AndKnuckleswithKnuckles/Reading_Record/blob/main/3)RT-Level_Combinational_Circuit/LED_TDM_and_Decoder_test.vhd>)
 
+``` vhdl
+entity hex_to_sseg_test is
+  port(
+    clk : in std_logic;
+    sw : in std_logic_vector(7 downto 0);
+    an : out std_logic_vector(3 downto 0);
+    sseg : out std_logic_vector(7 downto 0)
+  );
+end hex_to_sseg_test;
 
+architecture arch of hex_to_sseg_test is
+  signal inc : std_logic_vector(7 downto 0);
+  signal led0, led1, led2, led3 : std_logic_vector(7 downto 0);
 
+begin
+  inc <= std_logic_vector(unsigned(sw) + 1); -- increment input
+  
+  --instantiate 4 instances of hex decoders
+  sseg_unit_0 : entity work.hex_to_sseg -- instance for 4 LSBs of input
+    port map(hex => sw(3 downto 0), dp => '0', sseg => led0);
+  
+  sseg_unit_1 : entity work.hex_to_sseg -- instance for 4 MSBs of input
+    port map(hex => sw(7 downto 4), dp => '0', sseg => led1);
+    
+  sseg_unit_2 : entity work.hex_to_sseg -- instance for 4 LSBs of incremented value
+    port map(hex => inc(3 downto 0), dp => '1', sseg => led2);
+    
+  sseg_unit_3 : entity work.hex_to_sseg -- instance for 4 MSBs of incremented value
+    port map(hex => inc(7 downto 4), dp => '1', sseg => led3);
+    
+  disp_unit : entity work.disp_mux -- instantiate 7-seg LED time-multiplexing module
+    port map(
+      clk => clk,
+      reset => '0',
+      in0 => led0,
+      in1 => led1,
+      in2 => led2,
+      in3 => led3,
+      an => an,
+      sseg => seeg
+    );
+end arch;
+```
 
-
-
+**sw** 입력은 FPGA 보드의 8bit 스위치이며, increment 로 인해 sw + 1 로 **inc** 신호에 할당된다. sw 와 inc 는 4개의 16진수 7-segment 복호기를 통과한다.
