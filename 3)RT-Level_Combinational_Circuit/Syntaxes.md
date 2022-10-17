@@ -504,7 +504,7 @@ generic 은 *확장 가능한 코드(scalable code)* 를 만들 수 있는 구�
 
 *7-segment 디스플레이의 배치*
 
-7-segment 디스플레이는 7개의 LED 와 1개의 소수점 LED 로 구성되어 있다. 7-segment LED 는 **active low** (신호가 low 일 때 동작하는 회로)로 설정되어 있으며, 이는 즉 LED 부분에 해당하는 제어 신호가 '0' 일 때 빛난다는 뜻이다. 
+7-segment 디스플레이는 7개의 LED 와 1개의 소수점 LED 로 구성되어 있다. 7-segment LED 는 **active low** (신호가 low 일 때 동작하는 회로)로 설정되어 있으며, 이는 즉 LED 부분에 해당하는 제어 신호가 '0' 일 때 빛난다는 뜻이다. 반대로 신호가 high 일 때 동작하는 회로는 **active high** 이다. 7-segment 에서 active low 를 사용하는 이유는 켜져야 하는 LED 가 많기 때문이다. 만약 active high 로 설계하면 신호가 1인 경우가 많아지기 때문에 (10진수 표현에서) 논리식의 간략화가 어려워진다는 점이 있다.
 
 7-segment LED decoder 의 16진수 표현은 4bit 입력을 16진수로 취급하고 적절한 LED 패턴을 생성한다. 그에 더해 소수점을 위한 1bit 입력인 **dp** 를 취한다. dp 는 소수점 LED에 직접적으로 연결된다. LED 제어 신호인 dp, a, b, c, d, e, f, g 는 8bit 신호인 **sseg** 로 묶는다. 이를 구현한 코드는 다음과 같다. sseg 의 하위 7bit 는 LED 패턴을 생성하고 MSB 는 dp 와 연결한다.
 
@@ -531,13 +531,13 @@ generic 은 *확장 가능한 코드(scalable code)* 를 만들 수 있는 구�
   sseg(7) <= dp;
 ```
 
-7-segment 에서 숫자만 표현한다면(= 10진수만 표현한다면) 카르노 맵을 통해 간략화된 논리식을 이용하는 방법도 있다. 그러나 16진수를 표현할 때에 이용한다면 숫자가 10 이상일 때(= 1010 이상일 때) 카르노 맵의 "don't care" 조건 때문에 알파벳이 제대로 표시되지 않는 오류가 일어난다.
+7-segment 에서 숫자만 표현한다면(= 10진수만 표현한다면) 카르노 맵을 통해 간략화된 논리식을 이용하는 방법도 있다. 그러나 16진수를 표현할 때에 이용한다면 숫자가 10 이상일 때(= 1010 이상일 때) 카르노 맵의 "don't care" 조건 때문에 알파벳이 제대로 표시되지 않는 오류가 일어난다. 따라서 16진수 표현에서는 번거롭지만 모든 분기점에서 위의 코드처럼 LED 패턴을 일일이 만들어야 할 필요가 있다.
 
 ![F8FK0202097104052](https://user-images.githubusercontent.com/111409004/195512769-8b76fa1d-6fe4-4022-ae8f-795a7c4749e7.png)
 
 *crz technology 社의 Spartan-6 FPGA*
 
-FPGA 보드에는 보통 4개의 7-segment LED 가 탑재되어 있으며, 이 4개의 7-segment 를 제어하면서도 FPGA 칩의 I/O 포트 수를 줄이기 위해서 **시분할다중화(時分割多重化, time-division multiplexing)** 가 사용된다. 다음은 복호기(復号器, decoder)의 운영을 확인하기 위해 8bit increment 회로를 사용한 코드이다. 여기서 increment 란 단순히 입력에 +1 을 한 결과를 출력으로 내보내는 것이다. (반대로 decrement 는 -1 을 수행한다.)
+FPGA 보드에는 보통 4개의 7-segment LED 가 탑재되어 있으며, 이 4개의 7-segment 를 제어하면서도 FPGA 칩의 I/O 포트 수를 줄이기 위해서 **시분할다중화(時分割多重化,  time-division multiplexing, TDM)** 가 사용된다. 다음은 복호기(復号器, decoder)의 운영을 확인하기 위해 8bit increment 회로를 사용한 코드이다. 여기서 increment 란 단순히 입력에 +1 을 한 결과를 출력으로 내보내는 것이다. (반대로 decrement 는 -1 을 수행한다.)
 
 [LED_TDM_and_Decoder_test.vhd](<https://github.com/Knuckles2AndKnuckleswithKnuckles/Reading_Record/blob/main/3)RT-Level_Combinational_Circuit/LED_TDM_and_Decoder_test.vhd>)
 
@@ -586,3 +586,11 @@ end arch;
 ```
 
 **sw** 입력은 FPGA 보드의 8bit 스위치이며, increment 로 인해 sw + 1 로 **inc** 신호에 할당된다. sw 와 inc 는 4개의 16진수 7-segment 복호기를 통과한다.
+
+마지막으로 인스턴스화된 부품인 **disp_mux** 는 TDM 모듈이다. 입력신호는 **in0** , **in1** , **in2** , **in3** 의 4개로, 4개의 7-segemnt 디스플레이 각각의 입력에 해당하는 4bit 신호들이다. 출력신호는 **an** 의 1개로, 8개의 LED 패턴을 제어하는 8bit 신호이다. 이 모듈은 챕터 4에서 자세하게 다룬다.
+
+![2022-10-17 11 24 30](https://user-images.githubusercontent.com/111409004/196075772-37abf535-01b5-4f94-a3e8-546003a3f301.png)
+
+*LED_TDM_and_Decoder_test.vhd 의 도식*
+
+
