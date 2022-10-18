@@ -593,4 +593,55 @@ end arch;
 
 *LED_TDM_and_Decoder_test.vhd 의 도식*
 
+## 부호 절대치(Sign-magnitude) 가산기
+컴퓨터는 기본적으로 부호있는 정수를 처리할 때 **2의 보수** 로 처리한다. 그러나 부호있는 정수를 처리하는 방법은 2의 보수 이외에도 있는데, 그 중 하나로 **부호 절대치(sign-magnitude)** 방식이 있다. 부호 절대치 방식은 MSB 를 부호로 생각하고 나머지 비트를 절대치로써 생각한다. 예를 들어, "0011" 은 10진수로 "3" 이나, "1011" 은 10진수로 "-3" 이다. 2진수 숫자를 부호있는 10진수 숫자로 생각하기 편하다는 장점이 있지만, 2진수 끼리의 연산이 복잡하다는 단점이 존재한다. 부호 절대치 가산기의 운영은 다음과 같이 정리할 수 있다.
+
++ 두 피연산자가 같은 부호를 지닐 때, 절대치(MSB 를 제외한 나머지 비트)을 더하고 부호를 유지한다.
++ 두 피연산자가 다른 부호를 지닐 때, 두 피연산자의 절대치에서 큰 숫자에서 작은 숫자를 뺀 다음, 큰 숫자의 부호를 유지한다.
+
+이를 구현하기 위해서는 회로를 두 단계로 나누는 방법을 생각할 수 있다. 첫 번째 단계는 두 입력의 절대치를 분류하여 **max** 와 **min** 신호에 배선한다. 두 번째 단계는 부호를 검사하고 가산(혹은 감산)을 수행한다. 따라서 연산 결과의 부호는 max 신호의 부호에 따라 결정된다.
+
+[Sign-Magnitude_Adder.vhd](<https://github.com/Knuckles2AndKnuckleswithKnuckles/Reading_Record/blob/main/3)RT-Level_Combinational_Circuit/Sign-Magnitude_Adder.vhd>)
+
+``` vhdl
+architecture arch of sign_mag_add is
+  signal mag_a, mag_b, mag_sum : unsigned(N-2 downto 0);
+  signal max, min : unsigned(N-2 downto 0);
+  signal sign_a, sign_b, sign_sum : std_logic;
+
+begin
+  mag_a <= unsigned(a(N-2 downto 0)); -- magnitude of a
+  mag_b <= unsigned(b(N-2 downto 0)); -- magnitude of b
+  sign_a <= a(N-1); -- sign of a
+  sign_b <= b(N-1); -- sign of b
+  
+  -- sort according to magnitude
+  process(mag_a, mag_b, sign_a, sign_b)
+  begin
+    if mag_a > mag_b then
+      max <= mag_a;
+      min <= mag_b;
+      sign_sum <= sign_a;
+    
+    else
+      max <= mag_b;
+      min <= mag_a;
+      sign_sum <= sign_b;
+  
+    end if;
+  end process;
+      
+  -- add|sub magnitude
+  mag_sum <= max + min when sign_a = sign_b else
+             max - min;
+      
+  -- form output
+  sum <= std_logic_vector(sign_sum & mag_sum);
+
+end arch;
+```
+
+max 와 min 신호를 unsigned 타입으로 선언한 이유는 산술 연산자를 수행하기 위해서이다.
+
+
 
